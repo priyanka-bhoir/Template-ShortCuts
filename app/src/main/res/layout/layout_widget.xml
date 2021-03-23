@@ -28,8 +28,8 @@
 
             <ImageView
                 android:id="@+id/buttonClose"
-                android:layout_width="25dp"
-                android:layout_height="25dp"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
                 android:layout_marginLeft="50dp"
                 android:src="@drawable/ic_baseline_close_24" />
         </RelativeLayout>
@@ -42,7 +42,9 @@
             android:background="#a0c3d7"
             android:orientation="horizontal"
             android:padding="8dp"
-            android:visibility="gone">
+            xmlns:tools="http://schemas.android.com/tools"
+            android:visibility="gone"
+            >
 
             <ImageView
                 android:id="@+id/buttonSimplifiedCodingExpanded"
@@ -63,16 +65,16 @@
                     android:paddingLeft="15dp"
                     android:paddingRight="15dp"
                     android:paddingTop="15dp"
-                    android:text="Simplified Coding"
+                    android:text="Priyanka"
                     android:textAlignment="center"
                     android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
                     android:textColor="#ffffff"
                     android:textStyle="bold" />
 
-                <TextView
+                <ListView
+                    android:id="@+id/listview"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="www.Verl.net"
                     android:textAlignment="center"
                     android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
                     android:textColor="#ffffff"
