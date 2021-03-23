@@ -21,41 +21,60 @@
 
             <ImageView
                 android:id="@+id/collapsed_iv"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:layout_marginTop="8dp"
-                android:src="@drawable/index" />
+                android:src="@drawable/index"
+                tools:visibility="invisible"/>
 
-            <ImageView
-                android:id="@+id/buttonClose"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_marginLeft="50dp"
-                android:src="@drawable/ic_baseline_close_24" />
+<!--            <ImageView-->
+<!--                android:id="@+id/buttonClose"-->
+<!--                android:layout_width="30dp"-->
+<!--                android:layout_height="30dp"-->
+<!--                android:layout_marginLeft="20dp"-->
+<!--                android:src="@drawable/ic_baseline_close_24" />-->
         </RelativeLayout>
 
         <!-- this is the expanded layout -->
-        <LinearLayout
+        <RelativeLayout
             android:id="@+id/layoutExpanded"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="#a0c3d7"
             android:orientation="horizontal"
             android:padding="8dp"
             xmlns:tools="http://schemas.android.com/tools"
             android:visibility="gone"
+            tools:visibility="visible"
             >
-
+            <LinearLayout
+                android:id="@+id/ll1"
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
             <ImageView
                 android:id="@+id/buttonSimplifiedCodingExpanded"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:src="@drawable/index"
-                tools:ignore="ContentDescription" />
+                tools:ignore="ContentDescription"
+                android:layout_margin="10dp"/>
 
+<!--            <ImageView-->
+<!--                android:layout_width="40dp"-->
+<!--                android:layout_height="40dp"-->
+<!--                android:src="@drawable/ic_baseline_sms_24"-->
+<!--                android:layout_margin="10dp"/>-->
+<!--             <ImageView-->
+<!--                 android:layout_width="40dp"-->
+<!--                 android:layout_height="40dp"-->
+<!--                 android:layout_margin="10dp"-->
+<!--                 android:src="@drawable/whatsapp"/>-->
+            </LinearLayout>
             <LinearLayout
+                android:background="#a0c3d7"
+                android:layout_below="@+id/ll1"
                 android:id="@+id/buttonSimplifiedCoding"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
@@ -81,6 +100,6 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-        </LinearLayout>
+        </RelativeLayout>
     </RelativeLayout>
 </FrameLayout>

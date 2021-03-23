@@ -10,15 +10,22 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.TemplateShortCuts">
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity"  >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".WidgetService" android:enabled="true"
+        <service android:name=".WidgetService"
+            android:enabled="true"
             android:exported="false"/>
     </application>
+    <queries>
+
+        <package android:name="com.whatsapp" />
+        <package android:name="com.whatsapp.w4b" />
+
+    </queries>
 
 </manifest>

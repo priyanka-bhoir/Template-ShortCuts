@@ -3,17 +3,21 @@ package com.priyanka.templateshortcuts;
 import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
+import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 import android.text.Layout;
 import android.util.Log;
+import android.view.DragEvent;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -26,6 +30,7 @@ import androidx.annotation.Nullable;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -43,6 +48,9 @@ public class WidgetService extends Service implements View.OnClickListener {
     private View expandedView;
     ListView listView;
     List<String> items;
+    private final static int NONE = 0;
+    private final static int DRAG = 1;
+    private int m_mode = NONE;
 
     public WidgetService() {
     }
@@ -72,7 +80,7 @@ public class WidgetService extends Service implements View.OnClickListener {
         expandedView = mFloatingView.findViewById(R.id.layoutExpanded);
         listView=mFloatingView.findViewById(R.id.listview);
 
-        mFloatingView.findViewById(R.id.buttonClose).setOnClickListener(this);
+//        mFloatingView.findViewById(R.id.buttonClose).setOnClickListener(this);
         expandedView.setOnClickListener(this);
 
         items=new ArrayList<>();
@@ -82,7 +90,8 @@ public class WidgetService extends Service implements View.OnClickListener {
         ArrayAdapter<String> itemsAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, items);
         listView.setAdapter(itemsAdapter);
 
-        mFloatingView.findViewById(R.id.relativeLayoutParent).setOnTouchListener(new View.OnTouchListener() {
+        mFloatingView.findViewById(R.id.relativeLayoutParent);
+        mFloatingView.setOnTouchListener(new View.OnTouchListener() {
             private int initialX;
             private int initialY;
             private float initialTouchX;
@@ -92,6 +101,9 @@ public class WidgetService extends Service implements View.OnClickListener {
             public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
+
+                        m_mode = NONE;
+
                         initialX = params.x;
                         initialY = params.y;
                         initialTouchX = event.getRawX();
@@ -99,12 +111,17 @@ public class WidgetService extends Service implements View.OnClickListener {
                         return true;
                     case MotionEvent.ACTION_UP:
                         //when the drag is ended switching the state of the widget
-                        collapsedView.setVisibility(View.GONE);
-                        expandedView.setVisibility(View.VISIBLE);
+                        if(m_mode == DRAG){
+                            break;
+                        }
+                        layoutCollapsed();
                         return true;
 
                     case MotionEvent.ACTION_MOVE:
                         //this code is helping the widget to move around the screen with fingers
+
+                        m_mode = DRAG;
+
                         params.x = initialX + (int) (event.getRawX() - initialTouchX);
                         params.y = initialY + (int) (event.getRawY() - initialTouchY);
                         windowManager.updateViewLayout(mFloatingView, params);
@@ -114,6 +131,30 @@ public class WidgetService extends Service implements View.OnClickListener {
             }
         });
 
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Log.e(TAG, "onItemClick: "+items.get(position) );
+                PackageManager packageManager = getPackageManager();
+                Intent i = new Intent(Intent.ACTION_VIEW);
+
+                try {
+                    String url = "https://api.whatsapp.com/send?phone=" +"&text=" + URLEncoder.encode(items.get(position), "UTF-8");
+                    i.setPackage("com.whatsapp");
+                    i.setData(Uri.parse(url));
+                    Log.e(TAG, "onItemClick: into the try block "+ url );
+                    Log.e(TAG, "onItemClick:packageManager==::)) "+packageManager );
+                    if (i.resolveActivity(packageManager) != null) {
+                        Log.e(TAG, "onItemClick: into the if block" );
+                        getApplicationContext().startActivity(i);
+
+                    }
+                } catch (Exception e){
+                    e.printStackTrace();
+                    Log.e(TAG, "onItemClick: exception==:::) "+e );
+                }
+            }
+        });
 
     }
 
@@ -258,15 +299,24 @@ public class WidgetService extends Service implements View.OnClickListener {
             case R.id.layoutExpanded:
                 //switching views
                 Log.e(TAG, "onClick: layoutExpanded" );
-                collapsedView.setVisibility(View.VISIBLE);
-                expandedView.setVisibility(View.GONE);
+                layoutExpand();
                 break;
 
-            case R.id.buttonClose:
-                //closing the widget
-                Log.e(TAG, "onClick: buttonClose" );
-                stopSelf();
-                break;
+//            case R.id.buttonClose:
+//                //closing the widget
+//                Log.e(TAG, "onClick: buttonClose" );
+//                stopSelf();
+//                break;
         }
+    }
+
+    public void layoutExpand(){
+        collapsedView.setVisibility(View.VISIBLE);
+        expandedView.setVisibility(View.GONE);
+    }
+
+    public void layoutCollapsed(){
+        collapsedView.setVisibility(View.GONE);
+        expandedView.setVisibility(View.VISIBLE);
     }
 }

@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(View v){
                 if (!Settings.canDrawOverlays(MainActivity.this)){
                      getPermission();
                 }
