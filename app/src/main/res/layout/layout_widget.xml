@@ -24,7 +24,7 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_marginTop="8dp"
-                android:src="@drawable/index"
+                android:src="@drawable/whatsapp"
                 tools:visibility="invisible"/>
 
 <!--            <ImageView-->
@@ -55,7 +55,7 @@
                 android:id="@+id/buttonSimplifiedCodingExpanded"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:src="@drawable/index"
+                android:src="@drawable/whatsapp"
                 tools:ignore="ContentDescription"
                 android:layout_margin="10dp"/>
 
@@ -71,7 +71,7 @@
 <!--                 android:src="@drawable/whatsapp"/>-->
             </LinearLayout>
             <LinearLayout
-                android:background="#a0c3d7"
+                android:background="#BFD6E1"
                 android:layout_below="@+id/ll1"
                 android:id="@+id/buttonSimplifiedCoding"
                 android:layout_width="wrap_content"
