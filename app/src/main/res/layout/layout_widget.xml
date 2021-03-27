@@ -69,13 +69,14 @@
 <!--                 android:layout_height="40dp"-->
 <!--                 android:layout_margin="10dp"-->
 <!--                 android:src="@drawable/whatsapp"/>-->
+
             </LinearLayout>
             <LinearLayout
-                android:background="#BFD6E1"
-                android:layout_below="@+id/ll1"
                 android:id="@+id/buttonSimplifiedCoding"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:background="#BFD6E1"
+                android:layout_below="@+id/ll1"
                 android:orientation="vertical">
 
                 <TextView
@@ -97,6 +98,7 @@
                     android:textAlignment="center"
                     android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
                     android:textColor="#ffffff"
+                    android:nestedScrollingEnabled="true"
                     android:textStyle="bold" />
             </LinearLayout>
 

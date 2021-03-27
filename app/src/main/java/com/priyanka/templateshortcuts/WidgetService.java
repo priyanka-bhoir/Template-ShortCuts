@@ -3,6 +3,7 @@ package com.priyanka.templateshortcuts;
 import android.accessibilityservice.AccessibilityService;
 import android.annotation.SuppressLint;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
@@ -10,7 +11,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.provider.Settings;
 import android.text.Layout;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.DragEvent;
 import android.view.Gravity;
@@ -62,75 +65,13 @@ public class WidgetService extends AccessibilityService implements View.OnClickL
 
     static String targetName=null;
     static int convIndex = 0;
-
-
-    public WidgetService() {
-    }
-
-    @Override
-    public void onAccessibilityEvent(AccessibilityEvent event){
-        Log.e(TAG, "onAccessibilityEvent: called");
-        if (event == null){
-            return;
-        }
-        AccessibilityNodeInfo rootNode = event.getSource();
-        if (rootNode == null){
-            return;
-        }
-        try {
-            AccessibilityNodeInfo textBox = getNode(rootNode, chatBoxRefId);
-            Bundle arguments = new Bundle();
-            arguments.putString(AccessibilityNodeInfoCompat.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,targetName);
-            textBox.performAction(AccessibilityNodeInfoCompat.ACTION_SET_TEXT, arguments);
-            AccessibilityNodeInfo sendButton = getNode(rootNode, sendButtonRefId);
-
-            if (!textBox.getText().toString().isEmpty()){
-                Log.e(TAG, "onAccessibilityEvent: i don't know why you are getting called" );
-                sendButton.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-            }
-
-        }
-        catch (Exception e){
-            e.printStackTrace();
-            Log.e(TAG, "onAccessibilityEvent: Exception=:  " + e );
-        }
-    }
-
-    private AccessibilityNodeInfo getNode(AccessibilityNodeInfo rootNode, String refId){
-        AccessibilityNodeInfo textBoxNode = null;
-        List<AccessibilityNodeInfo> urlNodeInfo = rootNode.findAccessibilityNodeInfosByViewId(refId);
-        if (urlNodeInfo != null && !urlNodeInfo.isEmpty()){
-            textBoxNode =urlNodeInfo.get(0);
-            Log.e(TAG, "getNode: "+ textBoxNode );
-            return textBoxNode;
-        }
-        return textBoxNode;
-    }
-
-    private String getName(AccessibilityNodeInfo rootNode) {
-        List<AccessibilityNodeInfo> urlNodeInfo = rootNode.findAccessibilityNodeInfosByViewId(Constant.nameRefId);
-
-        if (urlNodeInfo != null && !urlNodeInfo.isEmpty()){
-            AccessibilityNodeInfo  urlNode = urlNodeInfo.get(0);
-            CharSequence charArray = urlNode.getText();
-            if (charArray != null && charArray.length()>0){
-                Log.e(TAG, "getName: "+charArray.toString());
-                return charArray.toString();
-            }
-        }
-        Log.e(TAG, "getName: Name not found");
-        return null;
-    }
-
-    @Override
-    public void onInterrupt() {
-
-    }
+    Boolean flag=false;
 
 
     @Override
     public void onCreate() {
         super.onCreate();
+
         mFloatingView = LayoutInflater.from(getApplicationContext()).inflate(R.layout.layout_widget,null);
 
         final WindowManager.LayoutParams params = new WindowManager.LayoutParams(
@@ -147,7 +88,6 @@ public class WidgetService extends AccessibilityService implements View.OnClickL
         expandedView = mFloatingView.findViewById(R.id.layoutExpanded);
         listView=mFloatingView.findViewById(R.id.listview);
 
-//        mFloatingView.findViewById(R.id.buttonClose).setOnClickListener(this);
         expandedView.setOnClickListener(this);
 
         items=new ArrayList<>();
@@ -164,14 +104,14 @@ public class WidgetService extends AccessibilityService implements View.OnClickL
         listView.setAdapter(itemsAdapter);
 
         mFloatingView.findViewById(R.id.relativeLayoutParent);
-        mFloatingView.setOnTouchListener(new View.OnTouchListener() {
+        mFloatingView.setOnTouchListener(new View.OnTouchListener(){
             private int initialX;
             private int initialY;
             private float initialTouchX;
             private float initialTouchY;
 
             @Override
-            public boolean onTouch(View v, MotionEvent event) {
+            public boolean onTouch(View v, MotionEvent event){
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
 
@@ -187,7 +127,6 @@ public class WidgetService extends AccessibilityService implements View.OnClickL
                         if(m_mode == DRAG){
                             Log.e(TAG, "onTouch: this is the drag mode==:) ACTION_UP");
                             // code for attaching of bubble on the left side of screen
-
                             break;
                         }
                         layoutCollapsed();
@@ -207,15 +146,16 @@ public class WidgetService extends AccessibilityService implements View.OnClickL
             }
         });
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.e(TAG, "onItemClick: "+items.get(position) );
-
-                setName(items.get(position));
-
-                PackageManager packageManager = getPackageManager();
-                Log.e(TAG, "onItemClick: "+packageManager.getPackageInstaller() );
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            Log.e(TAG, "onItemClick: " + items.get(position) );
+            setName(items.get(position));
+            Log.e(TAG, "onCreate: isaccessible " + isAccessibilityOn(getApplicationContext(),WidgetService.class));
+            if (isAccessibilityOn(getApplicationContext(),WidgetService.class)) {
+                flag = true;
+                layoutExpand();
+            }
+//                PackageManager packageManager = getPackageManager();
+//                Log.e(TAG, "onItemClick: "+packageManager.getPackageInstaller() );
 //                Intent i = new Intent(Intent.ACTION_VIEW);
 //
 //                try {
@@ -233,13 +173,11 @@ public class WidgetService extends AccessibilityService implements View.OnClickL
 //                    e.printStackTrace();
 //                    Log.e(TAG, "onItemClick: exception==:::) "+e );
 //                }
-            }
         });
-
     }
 
-    private void setName(String s) {
-        targetName= s;
+    private void setName(String s){
+        targetName=s;
         convIndex=0;
     }
 
@@ -371,11 +309,16 @@ public class WidgetService extends AccessibilityService implements View.OnClickL
         if (mFloatingView!=null){
             windowManager.removeView(mFloatingView);
         }
-
 //        if (closeImage!=null){
 //            windowManager.removeView(closeImage);
 //        }
     }
+
+//    @Nullable
+//    @Override
+//    public IBinder onBind(Intent intent) {
+//        return null;
+//    }
 
     @Override
     public void onClick(View v) {
@@ -386,7 +329,6 @@ public class WidgetService extends AccessibilityService implements View.OnClickL
                 Log.e(TAG, "onClick: layoutExpanded" );
                 layoutExpand();
                 break;
-
 //            case R.id.buttonClose:
 //                //closing the widget
 //                Log.e(TAG, "onClick: buttonClose" );
@@ -401,7 +343,117 @@ public class WidgetService extends AccessibilityService implements View.OnClickL
     }
 
     public void layoutCollapsed(){
+        Log.e(TAG, "layoutCollapsed: " );
         collapsedView.setVisibility(View.GONE);
         expandedView.setVisibility(View.VISIBLE);
     }
+
+    public WidgetService(){
+    }
+
+
+    @Override
+    public void onAccessibilityEvent(AccessibilityEvent event){
+        Log.e(TAG, "onAccessibilityEvent: " );
+        if (flag){
+            Log.e(TAG, "onAccessibilityEvent: called with falg--:)) " + event);
+            if (event == null){
+                return;
+            }
+
+            AccessibilityNodeInfo rootNode = event.getSource();
+            Log.e(TAG, "onAccessibilityEvent: rootNode=:))  " + rootNode );
+
+            if (rootNode == null){
+                return;
+            }
+            Log.e(TAG, "onAccessibilityEvent: " + event.getClassName());
+            try {
+//            Log.e(TAG, "onAccessibilityEvent: textBox.getText().toString()==:)  "+ textBox.getText().toString());
+////            if (!textBox.getText().toString().isEmpty()){
+//            Log.e(TAG, "onAccessibilityEvent: i don't know why you are getting called sendButtonRefId==::)) " + sendButtonRefId );
+                AccessibilityNodeInfo textBox = getNode(rootNode, chatBoxRefId);
+                Bundle arguments = new Bundle();
+                arguments.putString(AccessibilityNodeInfoCompat.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, targetName);
+                Log.e(TAG, "onAccessibilityEvent : arguments==::  " + arguments );
+                textBox.performAction(AccessibilityNodeInfoCompat.ACTION_SET_TEXT, arguments);
+
+                if (!textBox.getText().toString().isEmpty()){
+                    AccessibilityNodeInfo sendButton = getNode(rootNode, sendButtonRefId);
+                    sendButton.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                    performGlobalAction (GLOBAL_ACTION_BACK);
+                }
+
+//                Thread.sleep(1000);
+            }catch (Exception e){
+                e.printStackTrace();
+                Log.e(TAG, "onAccessibilityEvent: Exception=:  " + e);
+            }
+            flag=false;
+        }else {
+            return;
+        }
+    }
+
+    private AccessibilityNodeInfo getNode(AccessibilityNodeInfo rootNode, String refId){
+        Log.e(TAG, "getNode: refId==::  "+refId );
+        AccessibilityNodeInfo textBoxNode = null;
+        List<AccessibilityNodeInfo> urlNodeInfo = rootNode.findAccessibilityNodeInfosByViewId(refId);
+        if (urlNodeInfo != null && !urlNodeInfo.isEmpty()){
+
+            textBoxNode =urlNodeInfo.get(0);
+            Log.e(TAG, "getNode:textBoxNode=:)) "+ textBoxNode );
+            return textBoxNode;
+        }
+        Log.e(TAG, "getNode: textBoxNode=:))  "+textBoxNode );
+        return textBoxNode;
+    }
+
+    private String getName(AccessibilityNodeInfo rootNode){
+        List<AccessibilityNodeInfo> urlNodeInfo = rootNode.findAccessibilityNodeInfosByViewId(Constant.nameRefId);
+
+        if (urlNodeInfo != null && !urlNodeInfo.isEmpty()){
+            AccessibilityNodeInfo  urlNode = urlNodeInfo.get(0);
+            CharSequence charArray = urlNode.getText();
+            if (charArray != null && charArray.length()>0){
+                Log.e(TAG, "getName: "+charArray.toString());
+                return charArray.toString();
+            }
+        }
+        Log.e(TAG, "getName: Name not found");
+        return null;
+    }
+
+    @Override
+    public void onInterrupt(){
+
+        Log.e(TAG, "onInterrupt: event interupted" );
+    }
+
+    private boolean isAccessibilityOn (Context context, Class<? extends AccessibilityService> clazz) {
+        int accessibilityEnabled = 0;
+        final String service = context.getPackageName () + "/" + clazz.getCanonicalName ();
+        try {
+            accessibilityEnabled = Settings.Secure.getInt (context.getApplicationContext ().getContentResolver (), Settings.Secure.ACCESSIBILITY_ENABLED);
+        } catch (Settings.SettingNotFoundException ignored) {  }
+
+        TextUtils.SimpleStringSplitter colonSplitter = new TextUtils.SimpleStringSplitter (':');
+
+        if (accessibilityEnabled == 1){
+            String settingValue = Settings.Secure.getString (context.getApplicationContext ().getContentResolver (), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+            if (settingValue != null){
+                colonSplitter.setString (settingValue);
+                while (colonSplitter.hasNext ()){
+                    String accessibilityService = colonSplitter.next ();
+
+                    if (accessibilityService.equalsIgnoreCase (service)){
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
 }
