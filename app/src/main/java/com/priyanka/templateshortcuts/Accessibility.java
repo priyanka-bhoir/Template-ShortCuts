@@ -22,7 +22,7 @@ import static com.priyanka.templateshortcuts.Constant.sendButtonRefId;
 public class Accessibility extends AccessibilityService {
 
     String TAG="Accessibility";
-    static String targetName=null;
+    static String targetName="";
     static int convIndex = 0;
 
     public Accessibility(){
@@ -30,32 +30,95 @@ public class Accessibility extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event){
-        Log.e(TAG, "onAccessibilityEvent: called"+ event);
+        Log.e(TAG, "onAccessibilityEvent: called =:::) " + event);
+    if (!targetName.isEmpty()){
+        if (targetName.equals("")){
+            Log.e(TAG, "onAccessibilityEvent: targetName null" );
+            return;
+        }
+        accesiblityEvent(event);
+    }else {
+        return;
+    }
+//-------------------------------------------------------------------------------------------END----------------------------------------------------------------------------------
+
+//        if (getRootInActiveWindow () == null) {
+//            return;
+//        }
+//
+//        AccessibilityNodeInfoCompat rootInActiveWindow = AccessibilityNodeInfoCompat.wrap (getRootInActiveWindow ());
+//
+//        // Whatsapp Message EditText id
+//        List<AccessibilityNodeInfoCompat> messageNodeList = rootInActiveWindow.findAccessibilityNodeInfosByViewId ("com.whatsapp:id/entry");
+//        if (messageNodeList == null || messageNodeList.isEmpty ()) {
+//            return;
+//        }
+//
+//        // check if the whatsapp message EditText field is filled with text and ending with your suffix (explanation above)
+//        AccessibilityNodeInfoCompat messageField = messageNodeList.get (0);
+//        if (messageField.getText () == null || messageField.getText ().length () == 0
+//                || !messageField.getText ().toString ().endsWith (getApplicationContext ().getString (R.string.whatsapp_suffix))) { // So your service doesn't process any message, but the ones ending your apps suffix
+//            return;
+//        }
+//
+//        // Whatsapp send button id
+//        List<AccessibilityNodeInfoCompat> sendMessageNodeInfoList = rootInActiveWindow.findAccessibilityNodeInfosByViewId ("com.whatsapp:id/send");
+//        if (sendMessageNodeInfoList == null || sendMessageNodeInfoList.isEmpty ()) {
+//            return;
+//        }
+//
+//        AccessibilityNodeInfoCompat sendMessageButton = sendMessageNodeInfoList.get (0);
+//        if (!sendMessageButton.isVisibleToUser ()) {
+//            return;
+//        }
+//
+//        // Now fire a click on the send button
+//        sendMessageButton.performAction (AccessibilityNodeInfo.ACTION_CLICK);
+//
+//        // Now go back to your app by clicking on the Android back button twice:
+//        // First one to leave the conversation screen
+//        // Second one to leave whatsapp
+//        try {
+//            Thread.sleep (500); // hack for certain devices in which the immediate back click is too fast to handle
+//            performGlobalAction (GLOBAL_ACTION_BACK);
+//            Thread.sleep (500);  // same hack as above
+//        } catch (InterruptedException ignored) {}
+//        performGlobalAction (GLOBAL_ACTION_BACK);
+    }
+
+    private void accesiblityEvent(AccessibilityEvent event){
         if (event == null){
             return;
         }
+
         AccessibilityNodeInfo rootNode = event.getSource();
         if (rootNode == null){
             return;
         }
-
-        try{
+        try {
+            String name = getName(rootNode);
+            if (name == null) {
+                return;
+            }
             AccessibilityNodeInfo textBox = getNode(rootNode, chatBoxRefId);
+            Log.e(TAG, "PACKAGE NAME =  " +   textBox.getPackageName().toString());
+
+
             Bundle arguments = new Bundle();
-            arguments.putString(AccessibilityNodeInfoCompat.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,targetName);
-            textBox.performAction(AccessibilityNodeInfoCompat.ACTION_SET_TEXT, arguments);
-            Log.e(TAG, "onAccessibilityEvent: textBox.getText().toString()==:)  "+ textBox.getText().toString());
-            if (!textBox.getText().toString().isEmpty()){
-                Log.e(TAG, "onAccessibilityEvent: i don't know why you are getting called sendButtonRefId==::)) " + sendButtonRefId );
+            arguments.putString(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, targetName);
+            textBox.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments);
+            Log.e(TAG, "onAccessibilityEvent: textBox.getText().toString()==:)  " + textBox.getText().toString());
+            if (!textBox.getText().toString().isEmpty()) {
+                Log.e(TAG, "onAccessibilityEvent: i don't know why you are getting called sendButtonRefId==::)) " + sendButtonRefId);
                 AccessibilityNodeInfo sendButton = getNode(rootNode, sendButtonRefId);
                 sendButton.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                targetName="";
             }
-            Thread.sleep(1000);
-            performGlobalAction (GLOBAL_ACTION_BACK);
-        }
-        catch (Exception e){
+//            Thread.sleep(1000);
+//            performGlobalAction (GLOBAL_ACTION_BACK);
+        } catch (Exception e) {
             e.printStackTrace();
-            Log.e(TAG, "onAccessibilityEvent: Exception=:  " + e );
+            Log.e(TAG, "onAccessibilityEvent: Exception=:  " + e);
         }
     }
 
@@ -88,31 +151,5 @@ public class Accessibility extends AccessibilityService {
     @Override
     public void onInterrupt(){
 
-    }
-
-    private boolean isAccessibilityOn (Context context, Class<? extends AccessibilityService> clazz) {
-        int accessibilityEnabled = 0;
-        final String service = context.getPackageName () + "/" + clazz.getCanonicalName ();
-        try {
-            accessibilityEnabled = Settings.Secure.getInt (context.getApplicationContext ().getContentResolver (), Settings.Secure.ACCESSIBILITY_ENABLED);
-        } catch (Settings.SettingNotFoundException ignored) {  }
-
-        TextUtils.SimpleStringSplitter colonSplitter = new TextUtils.SimpleStringSplitter (':');
-
-        if (accessibilityEnabled == 1){
-            String settingValue = Settings.Secure.getString (context.getApplicationContext ().getContentResolver (), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
-            if (settingValue != null){
-                colonSplitter.setString (settingValue);
-                while (colonSplitter.hasNext ()){
-                    String accessibilityService = colonSplitter.next ();
-
-                    if (accessibilityService.equalsIgnoreCase (service)){
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
     }
 }

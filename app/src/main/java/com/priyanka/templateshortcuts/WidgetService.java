@@ -46,7 +46,7 @@ import java.util.List;
 import static com.priyanka.templateshortcuts.Constant.chatBoxRefId;
 import static com.priyanka.templateshortcuts.Constant.sendButtonRefId;
 
-public class WidgetService extends AccessibilityService implements View.OnClickListener {
+public class WidgetService extends Service implements View.OnClickListener {
 
     int LAYOUT_FLAG;
     View mFloatingView;
@@ -63,7 +63,7 @@ public class WidgetService extends AccessibilityService implements View.OnClickL
     private final static int DRAG = 1;
     private int m_mode = NONE;
 
-    static String targetName=null;
+//    static String targetName="";
     static int convIndex = 0;
     Boolean flag=false;
 
@@ -112,7 +112,7 @@ public class WidgetService extends AccessibilityService implements View.OnClickL
 
             @Override
             public boolean onTouch(View v, MotionEvent event){
-                switch (event.getAction()) {
+                switch (event.getAction()){
                     case MotionEvent.ACTION_DOWN:
 
                         m_mode = NONE;
@@ -147,12 +147,27 @@ public class WidgetService extends AccessibilityService implements View.OnClickL
         });
 
         listView.setOnItemClickListener((parent, view, position, id) -> {
-            Log.e(TAG, "onItemClick: " + items.get(position) );
-            setName(items.get(position));
-            Log.e(TAG, "onCreate: isaccessible " + isAccessibilityOn(getApplicationContext(),WidgetService.class));
-            if (isAccessibilityOn(getApplicationContext(),WidgetService.class)) {
+
+            Log.e(TAG, "onCreate: isAccessibility " + isAccessibilityOn(getApplicationContext(),Accessibility.class));
+
+            if (isAccessibilityOn(getApplicationContext(),Accessibility.class)) {
+                Log.e(TAG, "onItemClick: " + items.get(position));
                 flag = true;
+
+                String ItemValue = items.get(position);
+                setName(ItemValue);
                 layoutExpand();
+
+//                Intent i= new Intent(Intent.ACTION_VIEW);
+////                i.setType("text/plain");
+////                i.putExtra(Intent.EXTRA_TEXT,items.get(position));
+//                i.setPackage("com.whatsapp");
+//                startActivity(i);
+            }
+            else {
+                Intent intent = new Intent (Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                layoutExpand();
+                startActivity (intent);
             }
 //                PackageManager packageManager = getPackageManager();
 //                Log.e(TAG, "onItemClick: "+packageManager.getPackageInstaller() );
@@ -176,9 +191,11 @@ public class WidgetService extends AccessibilityService implements View.OnClickL
         });
     }
 
-    private void setName(String s){
-        targetName=s;
-        convIndex=0;
+    private static void setName(String s){
+        Accessibility.targetName=s;
+        Accessibility.convIndex=0;
+
+        Log.e("Asmita==>"," StringValue = "+s);
     }
 
 //    @SuppressLint("ClickableViewAccessibility")
@@ -314,6 +331,11 @@ public class WidgetService extends AccessibilityService implements View.OnClickL
 //        }
     }
 
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
 //    @Nullable
 //    @Override
 //    public IBinder onBind(Intent intent) {
@@ -351,56 +373,71 @@ public class WidgetService extends AccessibilityService implements View.OnClickL
     public WidgetService(){
     }
 
-
-    @Override
-    public void onAccessibilityEvent(AccessibilityEvent event){
-        Log.e(TAG, "onAccessibilityEvent: " );
-        if (flag){
-            Log.e(TAG, "onAccessibilityEvent: called with falg--:)) " + event);
-            if (event == null){
-                return;
-            }
-
-            AccessibilityNodeInfo rootNode = event.getSource();
-            Log.e(TAG, "onAccessibilityEvent: rootNode=:))  " + rootNode );
-
-            if (rootNode == null){
-                return;
-            }
-            Log.e(TAG, "onAccessibilityEvent: " + event.getClassName());
-            try {
-//            Log.e(TAG, "onAccessibilityEvent: textBox.getText().toString()==:)  "+ textBox.getText().toString());
-////            if (!textBox.getText().toString().isEmpty()){
-//            Log.e(TAG, "onAccessibilityEvent: i don't know why you are getting called sendButtonRefId==::)) " + sendButtonRefId );
-                AccessibilityNodeInfo textBox = getNode(rootNode, chatBoxRefId);
-                Bundle arguments = new Bundle();
-                arguments.putString(AccessibilityNodeInfoCompat.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, targetName);
-                Log.e(TAG, "onAccessibilityEvent : arguments==::  " + arguments );
-                textBox.performAction(AccessibilityNodeInfoCompat.ACTION_SET_TEXT, arguments);
-
-                if (!textBox.getText().toString().isEmpty()){
-                    AccessibilityNodeInfo sendButton = getNode(rootNode, sendButtonRefId);
-                    sendButton.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                    performGlobalAction (GLOBAL_ACTION_BACK);
-                }
-
-//                Thread.sleep(1000);
-            }catch (Exception e){
-                e.printStackTrace();
-                Log.e(TAG, "onAccessibilityEvent: Exception=:  " + e);
-            }
-            flag=false;
-        }else {
-            return;
-        }
-    }
+//    @Override
+//    public void onAccessibilityEvent(AccessibilityEvent event){
+//        Log.e(TAG, "onAccessibilityEvent: ");
+//        if (!targetName.isEmpty()){
+//            Log.e(TAG, "onAccessibilityEvent: called with falg--:)) " + event);
+//            if (event == null){
+//                return;
+//            }
+//
+//            AccessibilityNodeInfo rootNode = event.getSource();
+//            Log.e(TAG, "onAccessibilityEvent: rootNode=:))  " + rootNode );
+//            if (rootNode == null){
+//                return;
+//            }
+////            for (int i = 0; i < rootNode.getChildCount(); i++) {
+//////                DFS(rootNode.getChild(i));
+////                Log.e(TAG, "onAccessibilityEvent:rootNode=::(( "+rootNode.getChild(i));
+////            }
+//            Log.e(TAG, "onAccessibilityEvent: " + event.getClassName());
+//            try {
+//                String name = getName(rootNode);
+//                if (name == null){
+//                    return;
+//                }
+////            Log.e(TAG, "onAccessibilityEvent: textBox.getText().toString()==:)  "+ textBox.getText().toString());
+//////            if (!textBox.getText().toString().isEmpty()){
+////            Log.e(TAG, "onAccessibilityEvent: i don't know why you are getting called sendButtonRefId==::)) " + sendButtonRefId );
+//                AccessibilityNodeInfo textBox = getNode(rootNode, chatBoxRefId);
+//                Bundle arguments = new Bundle();
+//                arguments.putString(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, targetName);
+//                Log.e(TAG, "onAccessibilityEvent : arguments==::  " + arguments );
+//                textBox.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments);
+//
+//                if (!textBox.getText().toString().isEmpty()){
+//                    AccessibilityNodeInfo sendButton = getNode(rootNode, sendButtonRefId);
+//                    sendButton.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+//                    targetName="";
+////                    performGlobalAction (GLOBAL_ACTION_BACK);
+//                }
+////
+////                if (event.getEventType()==AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED){
+////                    if (source.getPackageName().equals("com.whatsapp")) {
+////                        AccessibilityNodeInfo currentNode=getRootInActiveWindow();
+////                        if (currentNode!=null && currentNode.getClassName().equals("android.widget.FrameLayout") && currentNode.getChild(2)!=null && currentNode.getChild(2).getClassName().equals("android.widget.TextView") && currentNode.getChild(2).getContentDescription().equals("Search")) {
+////                            currentNode.getChild(2).performAction(AccessibilityNodeInfo.ACTION_CLICK);
+////                        }
+////                    }
+////                }
+////                Thread.sleep(1000);
+//            }
+//            catch (Exception e){
+//                e.printStackTrace();
+//                Log.e(TAG, "onAccessibilityEvent: Exception=:  " + e);
+//            }
+//            flag=false;
+//        }else {
+//            return;
+//        }
+//    }
 
     private AccessibilityNodeInfo getNode(AccessibilityNodeInfo rootNode, String refId){
         Log.e(TAG, "getNode: refId==::  "+refId );
         AccessibilityNodeInfo textBoxNode = null;
         List<AccessibilityNodeInfo> urlNodeInfo = rootNode.findAccessibilityNodeInfosByViewId(refId);
         if (urlNodeInfo != null && !urlNodeInfo.isEmpty()){
-
             textBoxNode =urlNodeInfo.get(0);
             Log.e(TAG, "getNode:textBoxNode=:)) "+ textBoxNode );
             return textBoxNode;
@@ -424,13 +461,12 @@ public class WidgetService extends AccessibilityService implements View.OnClickL
         return null;
     }
 
-    @Override
-    public void onInterrupt(){
+//    @Override
+//    public void onInterrupt(){
+//        Log.e(TAG, "onInterrupt: event interupted");
+//    }
 
-        Log.e(TAG, "onInterrupt: event interupted" );
-    }
-
-    private boolean isAccessibilityOn (Context context, Class<? extends AccessibilityService> clazz) {
+    private boolean isAccessibilityOn (Context context, Class<? extends AccessibilityService> clazz){
         int accessibilityEnabled = 0;
         final String service = context.getPackageName () + "/" + clazz.getCanonicalName ();
         try {
@@ -445,7 +481,6 @@ public class WidgetService extends AccessibilityService implements View.OnClickL
                 colonSplitter.setString (settingValue);
                 while (colonSplitter.hasNext ()){
                     String accessibilityService = colonSplitter.next ();
-
                     if (accessibilityService.equalsIgnoreCase (service)){
                         return true;
                     }
