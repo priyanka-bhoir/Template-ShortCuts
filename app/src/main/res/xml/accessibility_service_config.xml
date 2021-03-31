@@ -3,8 +3,9 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:packageNames="com.whatsapp"
     android:accessibilityEventTypes="typeAllMask"
-    android:accessibilityFlags="flagReportViewIds|flagRetrieveInteractiveWindows"
     android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagReportViewIds|flagRetrieveInteractiveWindows"
     android:notificationTimeout="1000"
     android:canRetrieveWindowContent="true"
+    android:canRequestTouchExplorationMode="true"
     android:settingsActivity="WidgetService"/>

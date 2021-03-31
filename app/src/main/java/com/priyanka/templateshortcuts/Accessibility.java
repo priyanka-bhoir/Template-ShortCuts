@@ -1,6 +1,7 @@
 package com.priyanka.templateshortcuts;
 
 import android.accessibilityservice.AccessibilityService;
+import android.accessibilityservice.AccessibilityServiceInfo;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -29,8 +30,21 @@ public class Accessibility extends AccessibilityService {
     }
 
     @Override
+    protected void onServiceConnected() {
+        super.onServiceConnected();
+        AccessibilityServiceInfo info = new AccessibilityServiceInfo();
+        info.eventTypes = AccessibilityEvent.TYPES_ALL_MASK;
+        info.feedbackType = AccessibilityServiceInfo.FEEDBACK_ALL_MASK;
+        info.notificationTimeout = 100;
+        info.packageNames =new String[]{"com.whatsapp"};
+
+        this.setServiceInfo(info);
+    }
+
+    @Override
     public void onAccessibilityEvent(AccessibilityEvent event){
-        Log.e(TAG, "onAccessibilityEvent: called =:::) " + event);
+//        Log.e(TAG, "onAccessibilityEvent: called =:::) " + event);
+        Log.e("vaibhavi==>","events"+event.getEventType()+event.describeContents()+event.getPackageName()+event.getAction());
     if (!targetName.isEmpty()){
         if (targetName.equals("")){
             Log.e(TAG, "onAccessibilityEvent: targetName null" );
@@ -96,12 +110,12 @@ public class Accessibility extends AccessibilityService {
             return;
         }
         try {
-            String name = getName(rootNode);
-            if (name == null) {
-                return;
-            }
+//            String name = getName(rootNode);
+//            if (name == null) {
+//                return;
+//            }
             AccessibilityNodeInfo textBox = getNode(rootNode, chatBoxRefId);
-            Log.e(TAG, "PACKAGE NAME =  " +   textBox.getPackageName().toString());
+//            Log.e(TAG, "PACKAGE NAME =  " +   textBox.getPackageName().toString());
 
 
             Bundle arguments = new Bundle();
