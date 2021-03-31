@@ -23,6 +23,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -157,7 +158,10 @@ public class WidgetService extends Service implements View.OnClickListener {
                 String ItemValue = items.get(position);
                 setName(ItemValue);
                 layoutExpand();
-
+                Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.whatsapp:id/");
+                if (launchIntent != null) {
+                    startActivity(launchIntent);//null pointer check in case package name was not found
+                }
 //                Intent i= new Intent(Intent.ACTION_VIEW);
 ////                i.setType("text/plain");
 ////                i.putExtra(Intent.EXTRA_TEXT,items.get(position));
@@ -191,10 +195,16 @@ public class WidgetService extends Service implements View.OnClickListener {
         });
     }
 
-    private static void setName(String s){
-        Accessibility.targetName=s;
-        Accessibility.convIndex=0;
-
+    private void setName(String s){
+//        Accessibility.targetName=s;
+//        Accessibility.convIndex=0;
+        AccessibilityManager manager = (AccessibilityManager) getSystemService(Context.ACCESSIBILITY_SERVICE);
+        if (manager.isEnabled()) { AccessibilityEvent e = AccessibilityEvent.obtain();
+        e.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
+        e.setClassName(getClass().getName());
+        e.setPackageName("com.whatsapp");
+        e.getText().add("some text");
+        manager.sendAccessibilityEvent(e); }
         Log.e("Asmita==>"," StringValue = "+s);
     }
 
