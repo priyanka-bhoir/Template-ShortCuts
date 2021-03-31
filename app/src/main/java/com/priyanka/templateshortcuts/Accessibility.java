@@ -6,6 +6,8 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.text.TextUtils;
@@ -25,8 +27,20 @@ public class Accessibility extends AccessibilityService {
     String TAG="Accessibility";
     static String targetName="";
     static int convIndex = 0;
+    private Handler mHandler;
+
 
     public Accessibility(){
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        HandlerThread handlerThread = new HandlerThread("auto-handler");
+        handlerThread.start();
+        mHandler = new Handler(handlerThread.getLooper());
+
     }
 
     @Override
@@ -43,13 +57,9 @@ public class Accessibility extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event){
-//        Log.e(TAG, "onAccessibilityEvent: called =:::) " + event);
-        Log.e("vaibhavi==>","events"+event.getEventType()+event.describeContents()+event.getPackageName()+event.getAction());
+        Log.e(TAG, "onAccessibilityEvent: called =:::) " + event);
+        Log.e("vaibhavi==>","events EventType"+event.getEventType()+"-describeContents-"+event.describeContents()+"-getPackageName-"+event.getPackageName()+"-getAction-"+event.getAction());
     if (!targetName.isEmpty()){
-        if (targetName.equals("")){
-            Log.e(TAG, "onAccessibilityEvent: targetName null" );
-            return;
-        }
         accesiblityEvent(event);
     }else {
         return;
@@ -106,6 +116,7 @@ public class Accessibility extends AccessibilityService {
         }
 
         AccessibilityNodeInfo rootNode = event.getSource();
+        Log.e(TAG, "accesiblityEvent: "+rootNode);
         if (rootNode == null){
             return;
         }
@@ -115,22 +126,26 @@ public class Accessibility extends AccessibilityService {
 //                return;
 //            }
             AccessibilityNodeInfo textBox = getNode(rootNode, chatBoxRefId);
-//            Log.e(TAG, "PACKAGE NAME =  " +   textBox.getPackageName().toString());
 
-
+            Log.e(TAG, "accesiblityEvent: checkpoint----1---------->" );
             Bundle arguments = new Bundle();
+            Log.e(TAG, "accesiblityEvent: checkpoint----2---------->" );
             arguments.putString(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, targetName);
+            Log.e(TAG, "accesiblityEvent: checkpoint----3---------->" );
             textBox.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments);
+            textBox.setFocusable(false);
             Log.e(TAG, "onAccessibilityEvent: textBox.getText().toString()==:)  " + textBox.getText().toString());
-            if (!textBox.getText().toString().isEmpty()) {
+            if (!textBox.getText().toString().isEmpty()){
                 Log.e(TAG, "onAccessibilityEvent: i don't know why you are getting called sendButtonRefId==::)) " + sendButtonRefId);
                 AccessibilityNodeInfo sendButton = getNode(rootNode, sendButtonRefId);
+                Log.e(TAG, "accesiblityEvent: checkpoint----4---------->" );
                 sendButton.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                Log.e(TAG, "accesiblityEvent: checkpoint----5---------->" );
                 targetName="";
             }
 //            Thread.sleep(1000);
 //            performGlobalAction (GLOBAL_ACTION_BACK);
-        } catch (Exception e) {
+        }catch (Exception e) {
             e.printStackTrace();
             Log.e(TAG, "onAccessibilityEvent: Exception=:  " + e);
         }
