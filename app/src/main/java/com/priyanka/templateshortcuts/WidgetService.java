@@ -2,7 +2,10 @@ package com.priyanka.templateshortcuts;
 
 import android.accessibilityservice.AccessibilityService;
 import android.annotation.SuppressLint;
+import android.app.ActivityManager;
 import android.app.Service;
+import android.app.usage.UsageEvents;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -44,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import static android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK;
 import static com.priyanka.templateshortcuts.Constant.chatBoxRefId;
 import static com.priyanka.templateshortcuts.Constant.sendButtonRefId;
 
@@ -100,7 +104,6 @@ public class WidgetService extends Service implements View.OnClickListener {
                 "\n" +
                 "put the button on overlay layer.then set that button android:background=\"@null\" it block touch event of view below it..hope it solve your problem\n");
 
-
         ArrayAdapter<String> itemsAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, items);
         listView.setAdapter(itemsAdapter);
 
@@ -151,27 +154,41 @@ public class WidgetService extends Service implements View.OnClickListener {
 
             Log.e(TAG, "onCreate: isAccessibility " + isAccessibilityOn(getApplicationContext(),Accessibility.class));
 
-            if (isAccessibilityOn(getApplicationContext(),Accessibility.class)) {
+            if (isAccessibilityOn(getApplicationContext(),Accessibility.class)){
                 Log.e(TAG, "onItemClick: " + items.get(position));
                 flag = true;
 
                 String ItemValue = items.get(position);
                 setName(ItemValue);
                 layoutExpand();
-                Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.whatsapp:id/");
-                if (launchIntent != null) {
-                    startActivity(launchIntent);//null pointer check in case package name was not found
-                }
+//                switchToClient();
+//                switchTask();
+                accessibilityManager();
+//                Accessibility accessibility = new Accessibility();
+////                accessibility.
+//                Log.e(TAG, "onCreate: Accessibility.e===>> "+Accessibility.e );
+//                accessibility.accesiblityEvent(Accessibility.e);
+
+//                Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.whatsapp:id/");
+//                if (launchIntent != null) {
+//                    startActivity(launchIntent);//null pointer check in case package name was not found
+//                }
+
+
 //                Intent i= new Intent(Intent.ACTION_VIEW);
 ////                i.setType("text/plain");
 ////                i.putExtra(Intent.EXTRA_TEXT,items.get(position));
 //                i.setPackage("com.whatsapp");
 //                startActivity(i);
+
+//                Intent i= new Intent(this,WidgetService.class);
+//                stopService(i);
+
             }
             else {
                 Intent intent = new Intent (Settings.ACTION_ACCESSIBILITY_SETTINGS);
                 layoutExpand();
-                startActivity (intent);
+                startActivity(intent);
             }
 //                PackageManager packageManager = getPackageManager();
 //                Log.e(TAG, "onItemClick: "+packageManager.getPackageInstaller() );
@@ -195,17 +212,22 @@ public class WidgetService extends Service implements View.OnClickListener {
         });
     }
 
+    private void accessibilityManager() {
+        Accessibility accessibility = new Accessibility();
+        Log.e(TAG, "accessibilityManager: accessibility.getRootInActiveWindow()--->>>  "+ accessibility.getRootInActiveWindow());
+    }
+
     private void setName(String s){
-//        Accessibility.targetName=s;
-//        Accessibility.convIndex=0;
-        AccessibilityManager manager = (AccessibilityManager) getSystemService(Context.ACCESSIBILITY_SERVICE);
-        if (manager.isEnabled()) { AccessibilityEvent e = AccessibilityEvent.obtain();
-        e.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
-        e.setClassName(getClass().getName());
-        e.setPackageName("com.whatsapp");
-        e.getText().add("some text");
-        manager.sendAccessibilityEvent(e); }
-        Log.e("Asmita==>"," StringValue = "+s);
+        Accessibility.targetName=s;
+        Accessibility.convIndex=0;
+//        AccessibilityManager manager = (AccessibilityManager) getSystemService(Context.ACCESSIBILITY_SERVICE);
+//        if (manager.isEnabled()) { AccessibilityEvent e = AccessibilityEvent.obtain();
+//        e.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
+//        e.setClassName(getClass().getName());
+//        e.setPackageName("com.whatsapp");
+//        e.getText().add("some text");
+//        manager.sendAccessibilityEvent(e); }
+//        Log.e("Asmita==>"," StringValue = "+s);
     }
 
 //    @SuppressLint("ClickableViewAccessibility")
@@ -330,6 +352,34 @@ public class WidgetService extends Service implements View.OnClickListener {
 //        return START_STICKY;
 //    }
 
+
+    void switchTask()
+    {
+//        int tid;
+//        ActivityManager am;
+//        am = (ActivityManager)getSystemService( Context.ACTIVITY_SERVICE );
+//        tid = getPkgTaskId();  // read task id of *other* app from file
+//        am.moveTaskToFront( tid, 0, null );
+
+        ActivityManager am = (ActivityManager)getSystemService(Context. ACTIVITY_SERVICE);
+        List<ActivityManager.RunningTaskInfo> processes1 = am.getRunningTasks(1);
+        ComponentName componentInfo = processes1.get(0).topActivity;
+        Log.e(TAG, "switchTask: componentInfo-->> "+ componentInfo);
+        String classname =processes1.get(0).topActivity.getClassName();
+        Log.e(TAG, "switchTask:classname-->> "+classname );
+        String packagename = processes1.get(0).topActivity.getPackageName();
+        Log.e(TAG, "switchTask:packagename-->> "+ packagename);
+    }
+
+    void switchToClient()       // from Server (on Button click)
+    {
+        // Alternative Flags Tried: none, FLAG_ACTIVITY_SINGLE_TOP, FLAG_ACTIVITY_NEW_TASK, other
+        Intent intent;
+        intent = this.getPackageManager().getLaunchIntentForPackage( "com.whatsapp" );
+        intent.setFlags( Intent.FLAG_ACTIVITY_NEW_TASK );
+        startActivity( intent );
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -442,6 +492,7 @@ public class WidgetService extends Service implements View.OnClickListener {
 //            return;
 //        }
 //    }
+
 
     private AccessibilityNodeInfo getNode(AccessibilityNodeInfo rootNode, String refId){
         Log.e(TAG, "getNode: refId==::  "+refId );
